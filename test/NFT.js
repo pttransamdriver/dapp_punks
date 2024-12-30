@@ -229,5 +229,90 @@ describe('NFT', () => {
         await expect(nft.connect(minter).withdraw()).to.be.reverted
       })
     })
+    describe('Pausing', () => {
+      let transaction, result
+    
+      describe('Success', async () => {
+        const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+    
+        beforeEach(async () => {
+          const NFT = await ethers.getContractFactory('NFT')
+          nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        })
+    
+        it('updates pause state', async () => {
+          expect(await nft.paused()).to.equal(false) // Initially not paused
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+          expect(await nft.paused()).to.equal(true) // Should be paused after toggle
+        })
+    
+        it('returns correct pause state after multiple toggles', async () => {
+          // First toggle
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+          expect(await nft.paused()).to.equal(true)
+    
+          // Second toggle
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+          expect(await nft.paused()).to.equal(false)
+        })
+    
+        it('prevents minting while paused', async () => {
+          // Pause the contract
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+    
+          // Try to mint while paused
+          await expect(
+            nft.connect(minter).mint(1, { value: COST })
+          ).to.be.reverted
+        })
+    
+        it('allows minting after unpausing', async () => {
+          // Pause the contract
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+    
+          // Unpause the contract
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+    
+          // Should be able to mint now
+          transaction = await nft.connect(minter).mint(1, { value: COST })
+          result = await transaction.wait()
+          expect(await nft.totalSupply()).to.equal(1)
+        })
+      })
+    
+      describe('Failure', async () => {
+        const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+    
+        beforeEach(async () => {
+          const NFT = await ethers.getContractFactory('NFT')
+          nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, ALLOW_MINTING_ON, BASE_URI)
+        })
+    
+        it('prevents non-owner from pausing', async () => {
+          // Try to pause from non-owner account
+          await expect(
+            nft.connect(minter).togglePause()
+          ).to.be.reverted
+        })
+    
+        it('prevents minting while paused', async () => {
+          // Pause the contract as owner
+          transaction = await nft.connect(deployer).togglePause()
+          await transaction.wait()
+    
+          // Try to mint while paused
+          await expect(
+            nft.connect(minter).mint(1, { value: COST })
+          ).to.be.reverted
+        })
+      })
+    })
+    
   })
 })
