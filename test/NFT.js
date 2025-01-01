@@ -230,10 +230,12 @@ describe('NFT', () => {
       })
     })
     describe('Pausing', () => {
+      // Adding variables for the toggle capability
       let transaction, result
     
       describe('Success', async () => {
-        const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+        // Find the current date in Unit Time convert that to a string and pull out only the first 10 numbers
+        const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Meaning Now timestamp
     
         beforeEach(async () => {
           const NFT = await ethers.getContractFactory('NFT')
