@@ -1,255 +1,225 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (utils/Address.sol)
 
-pragma solidity ^0.8.1;
+pragma solidity ^0.8.20;
 
 /**
- * @dev Collection of functions related to the address type
+ * @title Address Library
+ * @dev This library provides utility functions for handling Ethereum addresses
+ * 
+ * External Contract Dependencies:
+ * - None - This is a standalone utility library
+ * 
+ * Internal Interactions:
+ * - Makes low-level calls to other contracts using call(), staticcall(), and delegatecall()
+ * - Interacts with contract bytecode through address.code.length
  */
 library Address {
     /**
-     * @dev Returns true if `account` is a contract.
-     *
-     * [IMPORTANT]
-     * ====
-     * It is unsafe to assume that an address for which this function returns
-     * false is an externally-owned account (EOA) and not a contract.
-     *
-     * Among others, `isContract` will return false for the following
-     * types of addresses:
-     *
-     *  - an externally-owned account
-     *  - a contract in construction
-     *  - an address where a contract will be created
-     *  - an address where a contract lived, but was destroyed
-     * ====
-     *
-     * [IMPORTANT]
-     * ====
-     * You shouldn't rely on `isContract` to protect against flash loan attacks!
-     *
-     * Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets
-     * like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract
-     * constructor.
-     * ====
+     * @dev Determines if an address belongs to a contract
+     * @param targetAddress The address to check
+     * @return bool Returns true if the address contains contract code
+     * 
+     * WARNING: This function can return false negatives for contracts under construction
+     * or contracts that have been destroyed
      */
-    function isContract(address account) internal view returns (bool) {
-        // This method relies on extcodesize/address.code.length, which returns 0
-        // for contracts in construction, since the code is only stored at the end
-        // of the constructor execution.
-
-        return account.code.length > 0;
+    function isContract(address targetAddress) internal view returns (bool) {
+        return targetAddress.code.length > 0;
     }
 
     /**
-     * @dev Replacement for Solidity's `transfer`: sends `amount` wei to
-     * `recipient`, forwarding all available gas and reverting on errors.
-     *
-     * https://eips.ethereum.org/EIPS/eip-1884[EIP1884] increases the gas cost
-     * of certain opcodes, possibly making contracts go over the 2300 gas limit
-     * imposed by `transfer`, making them unable to receive funds via
-     * `transfer`. {sendValue} removes this limitation.
-     *
-     * https://diligence.consensys.net/posts/2019/09/stop-using-soliditys-transfer-now/[Learn more].
-     *
-     * IMPORTANT: because control is transferred to `recipient`, care must be
-     * taken to not create reentrancy vulnerabilities. Consider using
-     * {ReentrancyGuard} or the
-     * https://solidity.readthedocs.io/en/v0.5.11/security-considerations.html#use-the-checks-effects-interactions-pattern[checks-effects-interactions pattern].
+     * @dev Safely sends Ether to an address
+     * @param recipientAddress The address to send Ether to
+     * @param etherAmount The amount of Ether to send (in wei)
+     * 
+     * This function is safer than using transfer() as it:
+     * - Forwards all available gas
+     * - Doesn't fail on high gas costs
      */
-    function sendValue(address payable recipient, uint256 amount) internal {
+    function sendValue(address payable recipientAddress, uint256 etherAmount) internal {
         require(
-            address(this).balance >= amount,
+            address(this).balance >= etherAmount,
             "Address: insufficient balance"
         );
 
-        (bool success, ) = recipient.call{value: amount}("");
+        (bool transferSuccess, ) = recipientAddress.call{value: etherAmount}("");
         require(
-            success,
+            transferSuccess,
             "Address: unable to send value, recipient may have reverted"
         );
     }
 
     /**
-     * @dev Performs a Solidity function call using a low level `call`. A
-     * plain `call` is an unsafe replacement for a function call: use this
-     * function instead.
-     *
-     * If `target` reverts with a revert reason, it is bubbled up by this
-     * function (like regular Solidity function calls).
-     *
-     * Returns the raw returned data. To convert to the expected return value,
-     * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].
-     *
-     * Requirements:
-     *
-     * - `target` must be a contract.
-     * - calling `target` with `data` must not revert.
-     *
-     * _Available since v3.1._
+     * @dev Makes a function call to another contract (simplified version)
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data (encoded function signature and parameters)
+     * @return bytes The return data from the function call
      */
-    function functionCall(address target, bytes memory data)
+    function functionCall(address targetContract, bytes memory encodedData)
         internal
         returns (bytes memory)
     {
-        return functionCall(target, data, "Address: low-level call failed");
+        return functionCall(
+            targetContract, 
+            encodedData, 
+            "Address: low-level call failed"
+        );
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`], but with
-     * `errorMessage` as a fallback revert reason when `target` reverts.
-     *
-     * _Available since v3.1._
+     * @dev Makes a function call to another contract with custom error message
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data (encoded function signature and parameters)
+     * @param errorMessage Custom error message on failure
+     * @return bytes The return data from the function call
      */
     function functionCall(
-        address target,
-        bytes memory data,
+        address targetContract,
+        bytes memory encodedData,
         string memory errorMessage
     ) internal returns (bytes memory) {
-        return functionCallWithValue(target, data, 0, errorMessage);
+        return functionCallWithValue(targetContract, encodedData, 0, errorMessage);
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-     * but also transferring `value` wei to `target`.
-     *
-     * Requirements:
-     *
-     * - the calling contract must have an ETH balance of at least `value`.
-     * - the called Solidity function must be `payable`.
-     *
-     * _Available since v3.1._
+     * @dev Makes a function call with value transfer (simplified version)
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data
+     * @param transferAmount Amount of ETH to send with the call
+     * @return bytes The return data from the function call
      */
     function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value
+        address targetContract,
+        bytes memory encodedData,
+        uint256 transferAmount
     ) internal returns (bytes memory) {
-        return
-            functionCallWithValue(
-                target,
-                data,
-                value,
-                "Address: low-level call with value failed"
-            );
+        return functionCallWithValue(
+            targetContract,
+            encodedData,
+            transferAmount,
+            "Address: low-level call with value failed"
+        );
     }
 
     /**
-     * @dev Same as {xref-Address-functionCallWithValue-address-bytes-uint256-}[`functionCallWithValue`], but
-     * with `errorMessage` as a fallback revert reason when `target` reverts.
-     *
-     * _Available since v3.1._
+     * @dev Makes a function call with value transfer and custom error message
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data
+     * @param transferAmount Amount of ETH to send with the call
+     * @param errorMessage Custom error message on failure
+     * @return bytes The return data from the function call
      */
     function functionCallWithValue(
-        address target,
-        bytes memory data,
-        uint256 value,
+        address targetContract,
+        bytes memory encodedData,
+        uint256 transferAmount,
         string memory errorMessage
     ) internal returns (bytes memory) {
         require(
-            address(this).balance >= value,
+            address(this).balance >= transferAmount,
             "Address: insufficient balance for call"
         );
-        require(isContract(target), "Address: call to non-contract");
+        require(isContract(targetContract), "Address: call to non-contract");
 
-        (bool success, bytes memory returndata) = target.call{value: value}(
-            data
+        (bool callSuccess, bytes memory returnData) = targetContract.call{value: transferAmount}(
+            encodedData
         );
-        return verifyCallResult(success, returndata, errorMessage);
+        return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-     * but performing a static call.
-     *
-     * _Available since v3.3._
+     * @dev Makes a static function call (read-only, no state changes)
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data
+     * @return bytes The return data from the function call
      */
-    function functionStaticCall(address target, bytes memory data)
+    function functionStaticCall(address targetContract, bytes memory encodedData)
         internal
         view
         returns (bytes memory)
     {
-        return
-            functionStaticCall(
-                target,
-                data,
-                "Address: low-level static call failed"
-            );
+        return functionStaticCall(
+            targetContract,
+            encodedData,
+            "Address: low-level static call failed"
+        );
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
-     * but performing a static call.
-     *
-     * _Available since v3.3._
+     * @dev Makes a static function call with custom error message
+     * @param targetContract Address of the contract to call
+     * @param encodedData The call data
+     * @param errorMessage Custom error message on failure
+     * @return bytes The return data from the function call
      */
     function functionStaticCall(
-        address target,
-        bytes memory data,
+        address targetContract,
+        bytes memory encodedData,
         string memory errorMessage
     ) internal view returns (bytes memory) {
-        require(isContract(target), "Address: static call to non-contract");
+        require(isContract(targetContract), "Address: static call to non-contract");
 
-        (bool success, bytes memory returndata) = target.staticcall(data);
-        return verifyCallResult(success, returndata, errorMessage);
+        (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData);
+        return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
-     * but performing a delegate call.
-     *
-     * _Available since v3.4._
+     * @dev Makes a delegate call (executes code in the context of the caller)
+     * @param targetContract Address of the contract to delegate call to
+     * @param encodedData The call data
+     * @return bytes The return data from the function call
      */
-    function functionDelegateCall(address target, bytes memory data)
+    function functionDelegateCall(address targetContract, bytes memory encodedData)
         internal
         returns (bytes memory)
     {
-        return
-            functionDelegateCall(
-                target,
-                data,
-                "Address: low-level delegate call failed"
-            );
+        return functionDelegateCall(
+            targetContract,
+            encodedData,
+            "Address: low-level delegate call failed"
+        );
     }
 
     /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
-     * but performing a delegate call.
-     *
-     * _Available since v3.4._
+     * @dev Makes a delegate call with custom error message
+     * @param targetContract Address of the contract to delegate call to
+     * @param encodedData The call data
+     * @param errorMessage Custom error message on failure
+     * @return bytes The return data from the function call
      */
     function functionDelegateCall(
-        address target,
-        bytes memory data,
+        address targetContract,
+        bytes memory encodedData,
         string memory errorMessage
     ) internal returns (bytes memory) {
-        require(isContract(target), "Address: delegate call to non-contract");
+        require(isContract(targetContract), "Address: delegate call to non-contract");
 
-        (bool success, bytes memory returndata) = target.delegatecall(data);
-        return verifyCallResult(success, returndata, errorMessage);
+        (bool callSuccess, bytes memory returnData) = targetContract.delegatecall(encodedData);
+        return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
     /**
-     * @dev Tool to verifies that a low level call was successful, and revert if it wasn't, either by bubbling the
-     * revert reason using the provided one.
-     *
-     * _Available since v4.3._
+     * @dev Verifies the result of a function call and handles the return data
+     * @param callSuccess Whether the call was successful
+     * @param returnData Data returned from the call
+     * @param errorMessage Message to show if call failed
+     * @return bytes The verified return data
      */
     function verifyCallResult(
-        bool success,
-        bytes memory returndata,
+        bool callSuccess,
+        bytes memory returnData,
         string memory errorMessage
     ) internal pure returns (bytes memory) {
-        if (success) {
-            return returndata;
+        if (callSuccess) {
+            return returnData;
         } else {
             // Look for revert reason and bubble it up if present
-            if (returndata.length > 0) {
+            if (returnData.length > 0) {
                 // The easiest way to bubble the revert reason is using memory via assembly
                 /// @solidity memory-safe-assembly
                 assembly {
-                    let returndata_size := mload(returndata)
-                    revert(add(32, returndata), returndata_size)
+                    let returnDataSize := mload(returnData)
+                    revert(add(32, returnData), returnDataSize)
                 }
             } else {
                 revert(errorMessage);
