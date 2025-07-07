@@ -3,77 +3,41 @@
 
 pragma solidity ^0.8.20;
 
-/**
- * @title Address Library
- * @dev This library provides utility functions for handling Ethereum addresses
- * 
- * External Contract Dependencies:
- * - None - This is a standalone utility library
- * 
- * Internal Interactions:
- * - Makes low-level calls to other contracts using call(), staticcall(), and delegatecall()
- * - Interacts with contract bytecode through address.code.length
- */
+// "Library" is a special kind of contract that contains only functions. It gets imbeded into the contract's bytcode at compile time and that's how it gets used on chain. It can't be deployed on chain alone.
 library Address {
-    /**
-     * @dev Determines if an address belongs to a contract
-     * @param targetAddress The address to check
-     * @return bool Returns true if the address contains contract code
-     * 
-     * WARNING: This function can return false negatives for contracts under construction
-     * or contracts that have been destroyed
-     */
+
+    // "internal" means that this "isContract" function can only be called from within this contract or contracts that inherit from it.
     function isContract(address targetAddress) internal view returns (bool) {
-        return targetAddress.code.length > 0;
+        return targetAddress.code.length > 0; // Returns bool true if the address contains contract code. Wallet addresses return false.
     }
 
-    /**
-     * @dev Safely sends Ether to an address
-     * @param recipientAddress The address to send Ether to
-     * @param etherAmount The amount of Ether to send (in wei)
-     * 
-     * This function is safer than using transfer() as it:
-     * - Forwards all available gas
-     * - Doesn't fail on high gas costs
-     */
+    // This function is a "payable" function, which means it can receive Ether.
     function sendValue(address payable recipientAddress, uint256 etherAmount) internal {
+        // This function requires that the caller has enough Ether to cover the transfer amount.
         require(
-            address(this).balance >= etherAmount,
+            address(this).balance >= etherAmount, // "address(this)" refers to the address of the contract that is calling this Library function.
             "Address: insufficient balance"
         );
 
-        (bool transferSuccess, ) = recipientAddress.call{value: etherAmount}("");
+        (bool transferSuccess, ) = recipientAddress.call{value: etherAmount}(""); // This is a low-level function to send Ether. It's used because it allows you to forward all available gas, which is important for security.
         require(
-            transferSuccess,
-            "Address: unable to send value, recipient may have reverted"
+            transferSuccess, // "transferSuccess" is a boolean that indicates whether the transfer was successful.
+            "Address: unable to send value, recipient may have reverted" // Message to indicate that the transfer failed. 
         );
     }
 
-    /**
-     * @dev Makes a function call to another contract (simplified version)
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data (encoded function signature and parameters)
-     * @return bytes The return data from the function call
-     */
-    function functionCall(address targetContract, bytes memory encodedData)
-        internal
-        returns (bytes memory)
+    function functionCall(address targetContract, bytes memory encodedData) // This function is used to call a function on another contract.
+        internal // "internal" means that this function can only be called from within this contract or contracts that inherit from it.
+        returns (bytes memory) // "returns (bytes memory)" means that this function returns a byte array.
     {
-        return functionCall(
-            targetContract, 
-            encodedData, 
-            "Address: low-level call failed"
+        return functionCall( // Returns the byte array returned from the function call.
+            targetContract, // Address of the contract to call
+            encodedData, // Encoded function call data
+            "Address: low-level call failed" // Custom error message if the call fails
         );
     }
 
-    /**
-     * @dev Makes a function call to another contract with custom error message
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data (encoded function signature and parameters)
-     * @param errorMessage Custom error message on failure
-     * @return bytes The return data from the function call
-     */
-    function functionCall(
+    function functionCall( // Three parameter version of functionCall.
         address targetContract,
         bytes memory encodedData,
         string memory errorMessage
@@ -81,94 +45,61 @@ library Address {
         return functionCallWithValue(targetContract, encodedData, 0, errorMessage);
     }
 
-    /**
-     * @dev Makes a function call with value transfer (simplified version)
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data
-     * @param transferAmount Amount of ETH to send with the call
-     * @return bytes The return data from the function call
-     */
-    function functionCallWithValue(
-        address targetContract,
-        bytes memory encodedData,
-        uint256 transferAmount
-    ) internal returns (bytes memory) {
-        return functionCallWithValue(
-            targetContract,
-            encodedData,
-            transferAmount,
-            "Address: low-level call with value failed"
+    function functionCallWithValue( // Function that sends Ether to the target contract.
+        address targetContract, // The contract to call
+        bytes memory encodedData, // Encoded function call data from abi.encodeWithSignature()
+        uint256 transferAmount // Amount of Ether to send
+    ) internal returns (bytes memory) { // Returns the internal functionCallWithValue.
+        return functionCallWithValue( // Returns the internal functionCallWithValue.
+            targetContract, // Address of the contract to call
+            encodedData,    // Encoded function call data
+            transferAmount, // Amount of Ether to send
+            "Address: low-level call with value failed" // Custom error message if the call fails
         );
     }
 
-    /**
-     * @dev Makes a function call with value transfer and custom error message
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data
-     * @param transferAmount Amount of ETH to send with the call
-     * @param errorMessage Custom error message on failure
-     * @return bytes The return data from the function call
-     */
-    function functionCallWithValue(
-        address targetContract,
-        bytes memory encodedData,
-        uint256 transferAmount,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
+    function functionCallWithValue( // Four parameter version of functionCallWithValue.
+        address targetContract, // The contract to call
+        bytes memory encodedData, // Encoded function call data
+        uint256 transferAmount, // Amount of Ether to send
+        string memory errorMessage // Custom error message if the call fails
+    ) internal returns (bytes memory) { // Returns the internal functionCallWithValue.
         require(
-            address(this).balance >= transferAmount,
+            address(this).balance >= transferAmount, // Requires that the caller has enough Ether to cover the transfer amount.
             "Address: insufficient balance for call"
         );
-        require(isContract(targetContract), "Address: call to non-contract");
+        require(isContract(targetContract), "Address: call to non-contract"); // Requires that the target address is a contract.
 
-        (bool callSuccess, bytes memory returnData) = targetContract.call{value: transferAmount}(
+        (bool callSuccess, bytes memory returnData) = targetContract.call{value: transferAmount}( // Calls the target contract with the encoded function call data and the transfer amount.
             encodedData
         );
-        return verifyCallResult(callSuccess, returnData, errorMessage);
+        return verifyCallResult(callSuccess, returnData, errorMessage); // Returns the internal verifyCallResult.
     }
 
-    /**
-     * @dev Makes a static function call (read-only, no state changes)
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data
-     * @return bytes The return data from the function call
-     */
-    function functionStaticCall(address targetContract, bytes memory encodedData)
-        internal
-        view
-        returns (bytes memory)
+
+    function functionStaticCall(address targetContract, bytes memory encodedData) // Function that calls a function on another contract without sending any Ether.
+        internal // "internal" means that this function can only be called from within this contract or contracts that inherit from it.
+        view // "view" means that this function does not modify any state variables.
+        returns (bytes memory) // "returns (bytes memory)" means that this function returns a byte array.
     {
-        return functionStaticCall(
-            targetContract,
-            encodedData,
-            "Address: low-level static call failed"
+        return functionStaticCall( // Returns the internal functionStaticCall.
+            targetContract, // Address of the contract to call
+            encodedData,    // Encoded function call data
+            "Address: low-level static call failed" // Custom error message if the call fails
         );
     }
 
-    /**
-     * @dev Makes a static function call with custom error message
-     * @param targetContract Address of the contract to call
-     * @param encodedData The call data
-     * @param errorMessage Custom error message on failure
-     * @return bytes The return data from the function call
-     */
-    function functionStaticCall(
-        address targetContract,
-        bytes memory encodedData,
-        string memory errorMessage
+    function functionStaticCall( // Three parameter version of functionStaticCall.
+        address targetContract, // The contract to call
+        bytes memory encodedData, // Encoded function call data
+        string memory errorMessage // Custom error message if the call fails
     ) internal view returns (bytes memory) {
-        require(isContract(targetContract), "Address: static call to non-contract");
+        require(isContract(targetContract), "Address: static call to non-contract"); // Requires that the target address is a contract.
 
         (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData);
         return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
-    /**
-     * @dev Makes a delegate call (executes code in the context of the caller)
-     * @param targetContract Address of the contract to delegate call to
-     * @param encodedData The call data
-     * @return bytes The return data from the function call
-     */
     function functionDelegateCall(address targetContract, bytes memory encodedData)
         internal
         returns (bytes memory)
@@ -180,13 +111,6 @@ library Address {
         );
     }
 
-    /**
-     * @dev Makes a delegate call with custom error message
-     * @param targetContract Address of the contract to delegate call to
-     * @param encodedData The call data
-     * @param errorMessage Custom error message on failure
-     * @return bytes The return data from the function call
-     */
     function functionDelegateCall(
         address targetContract,
         bytes memory encodedData,
@@ -198,13 +122,6 @@ library Address {
         return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
-    /**
-     * @dev Verifies the result of a function call and handles the return data
-     * @param callSuccess Whether the call was successful
-     * @param returnData Data returned from the call
-     * @param errorMessage Message to show if call failed
-     * @return bytes The verified return data
-     */
     function verifyCallResult(
         bool callSuccess,
         bytes memory returnData,
