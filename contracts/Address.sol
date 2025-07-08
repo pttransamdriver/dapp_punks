@@ -96,7 +96,7 @@ library Address {
     ) internal view returns (bytes memory) {
         require(isContract(targetContract), "Address: static call to non-contract"); // Requires that the target address is a contract.
 
-        (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData);
+        (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData); // 
         return verifyCallResult(callSuccess, returnData, errorMessage);
     }
 
