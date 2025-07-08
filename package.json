@@ -1,4 +1,5 @@
 {
+  "_comment": "Updated dependencies for security",
   "name": "dapp_punks",
   "version": "0.1.0",
   "private": true,
