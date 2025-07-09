@@ -96,26 +96,27 @@ library Address {
     ) internal view returns (bytes memory) {
         require(isContract(targetContract), "Address: static call to non-contract"); // Requires that the target address is a contract.
 
-        (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData); // 
-        return verifyCallResult(callSuccess, returnData, errorMessage);
+        (bool callSuccess, bytes memory returnData) = targetContract.staticcall(encodedData); //The "bool callSuccess" indicates whether the call was successful, and tells the caller whether the call succeeded or failed. The "bytes memory returnData" contains the data returned by the called function.
+        // The "staticcall" is used to call a function on another contract without modifying its state. It is similar to a regular call, but it does not allow the called function to modify
+        return verifyCallResult(callSuccess, returnData, errorMessage); // Returns the internal verifyCallResult.
     }
 
-    function functionDelegateCall(address targetContract, bytes memory encodedData)
+    function functionDelegateCall(address targetContract, bytes memory encodedData) // Function that calls the function on another contract using delegatecall. Specifically, it allows the called function to modify the state of the calling contract.
         internal
-        returns (bytes memory)
+        returns (bytes memory) // "returns (bytes memory)" which means that this function returns a byte array from the called function on the target contract. This value can affect the state of this contract.
     {
-        return functionDelegateCall(
-            targetContract,
-            encodedData,
-            "Address: low-level delegate call failed"
+        return functionDelegateCall( // Returns the internal functionDelegateCall.
+            targetContract, // Address of the contract to call
+            encodedData,    // Encoded function call data
+            "Address: low-level delegate call failed" // Custom error message if the call fails
         );
     }
 
-    function functionDelegateCall(
-        address targetContract,
-        bytes memory encodedData,
-        string memory errorMessage
-    ) internal returns (bytes memory) {
+    function functionDelegateCall( // Three parameter version of functionDelegateCall.
+        address targetContract, // The contract to call
+        bytes memory encodedData, // Encoded function call data
+        string memory errorMessage // Custom error message if the call fails
+    ) internal returns (bytes memory) { // Returns the internal functionDelegateCall. Which means that this function returns a byte array from the called function on the target contract. This value can affect the state of this contract.
         require(isContract(targetContract), "Address: delegate call to non-contract");
 
         (bool callSuccess, bytes memory returnData) = targetContract.delegatecall(encodedData);
