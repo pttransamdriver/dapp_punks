@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 
 const tokens = (n) => {
-  return ethers.utils.parseUnits(n.toString(), 'ether')
+  return ethers.parseUnits(n.toString(), 'ether')
 }
 
 const ether = tokens
@@ -98,7 +98,7 @@ describe('NFT', () => {
       })
 
       it('updates the contract ether balance', async () => {
-        expect(await ethers.provider.getBalance(nft.address)).to.equal(COST)
+        expect(await ethers.provider.getBalance(await nft.getAddress())).to.equal(COST)
       })
 
       it('emits Mint event', async () => {
@@ -205,7 +205,7 @@ describe('NFT', () => {
       })
 
       it('deducts contract balance', async () => {
-        expect(await ethers.provider.getBalance(nft.address)).to.equal(0)
+        expect(await ethers.provider.getBalance(await nft.getAddress())).to.equal(0)
       })
 
       it('sends funds to the owner', async () => {
