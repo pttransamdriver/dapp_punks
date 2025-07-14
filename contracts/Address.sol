@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (utils/Address.sol)
-
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 // "Library" is a special kind of contract that contains only functions. It gets imbeded into the contract's bytcode at compile time and that's how it gets used on chain. It can't be deployed on chain alone.
 library Address {
@@ -119,28 +118,28 @@ library Address {
     ) internal returns (bytes memory) { // Returns the internal functionDelegateCall. Which means that this function returns a byte array from the called function on the target contract. This value can affect the state of this contract.
         require(isContract(targetContract), "Address: delegate call to non-contract");
 
-        (bool callSuccess, bytes memory returnData) = targetContract.delegatecall(encodedData);
-        return verifyCallResult(callSuccess, returnData, errorMessage);
+        (bool callSuccess, bytes memory returnData) = targetContract.delegatecall(encodedData); // The "bool callSuccess" indicates whether the call was successful, and tells the caller whether the call succeeded or failed. The "bytes memory returnData" contains the data returned by the function called on the target contract.
+        return verifyCallResult(callSuccess, returnData, errorMessage); // Returns the internal verifyCallResult. Which means that this function returns a byte array from the called function on the target contract. This value can affect the state of this contract.
     }
 
-    function verifyCallResult(
-        bool callSuccess,
-        bytes memory returnData,
-        string memory errorMessage
-    ) internal pure returns (bytes memory) {
-        if (callSuccess) {
-            return returnData;
-        } else {
+    function verifyCallResult( // This function is used to verify the result of a low-level call.
+        bool callSuccess, // The "bool callSuccess" indicates whether the call was successful, and tells the caller whether the call succeeded or failed.
+        bytes memory returnData, // The "bytes memory returnData" contains the data returned by the function called on the target contract.
+        string memory errorMessage // The "string memory errorMessage" is a custom error message that is returned if the call fails.
+    ) internal pure returns (bytes memory) { // "pure" means that this function does not read or modify any state variables.
+        if (callSuccess) { // If the call was successful, then return the data returned by the called function.
+            return returnData; // Returns the data returned by the called function.
+        } else { // If the call failed, then move into the next if statement.
             // Look for revert reason and bubble it up if present
-            if (returnData.length > 0) {
+            if (returnData.length > 0) { // If the return data length is greater than 0, then the call failed.
                 // The easiest way to bubble the revert reason is using memory via assembly
                 /// @solidity memory-safe-assembly
-                assembly {
-                    let returnDataSize := mload(returnData)
-                    revert(add(32, returnData), returnDataSize)
+                assembly { // "assembly" is used to write inline assembly code. It is used to write low-level code that interacts directly with the EVM. In this case, it is used to revert the transaction with the error message returned by the called function.
+                    let returnDataSize := mload(returnData) // "mload" is used to load data from memory. In this case, it is used to load the size of the return data.
+                    revert(add(32, returnData), returnDataSize) // "revert" is used to revert the transaction. It takes two arguments. The first argument is the memory location of the error message. The second argument is the size of the error message.
                 }
-            } else {
-                revert(errorMessage);
+            } else { // If the return data length is 0, then the call failed
+                revert(errorMessage); // Revert the transaction with the custom error message "errorMessage". 
             }
         }
     }
