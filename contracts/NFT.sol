@@ -1,10 +1,13 @@
-// SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-import "./ERC721Enumerable.sol";
-import "./Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract NFT is ERC721Enumerable, Ownable {
+contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     using Strings for uint256;
 
     string public baseURI;
@@ -12,8 +15,8 @@ contract NFT is ERC721Enumerable, Ownable {
     uint256 public cost;
     uint256 public maxSupply;
     uint256 public allowMintingOn;
-    bool public paused = false;
-    
+    uint256 public maxMintAmount = 10; // Maximum tokens per transaction
+
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
@@ -25,27 +28,27 @@ contract NFT is ERC721Enumerable, Ownable {
         uint256 _maxSupply,
         uint256 _allowMintingOn,
         string memory _baseURI
-    ) ERC721(_name, _symbol) {
+    ) ERC721(_name, _symbol) Ownable(msg.sender) {
         cost = _cost;
         maxSupply = _maxSupply;
         allowMintingOn = _allowMintingOn;
         baseURI = _baseURI;
     }
 
-    function mint(uint256 _mintAmount) public payable {
-        // Check to see if there is 
-        require(!paused, "Minting is paused");
-        // Only allow minting after specified time
-        require(block.timestamp >= allowMintingOn);
+    function mint(uint256 _mintAmount) public payable nonReentrant whenNotPaused {
         // Must mint at least 1 token
-        require(_mintAmount > 0);
+        require(_mintAmount > 0, "Must mint at least 1 token");
+        // Check maximum mint amount per transaction
+        require(_mintAmount <= maxMintAmount, "Exceeds maximum mint amount per transaction");
+        // Only allow minting after specified time
+        require(block.timestamp >= allowMintingOn, "Minting not allowed yet");
         // Require enough payment
-        require(msg.value >= cost * _mintAmount);
+        require(msg.value >= cost * _mintAmount, "Insufficient payment");
 
         uint256 supply = totalSupply();
 
         // Do not let them mint more tokens than available
-        require(supply + _mintAmount <= maxSupply);
+        require(supply + _mintAmount <= maxSupply, "Exceeds maximum supply");
 
         // Create tokens
         for(uint256 i = 1; i <= _mintAmount; i++) {
@@ -65,7 +68,7 @@ contract NFT is ERC721Enumerable, Ownable {
         override
         returns(string memory)
     {
-        require(_exists(_tokenId), 'token does not exist');
+        require(_ownerOf(_tokenId) != address(0), 'token does not exist');
         return(string(abi.encodePacked(baseURI, _tokenId.toString(), baseExtension)));
     }
 
@@ -81,11 +84,12 @@ contract NFT is ERC721Enumerable, Ownable {
 
     // Owner functions
 
-    function withdraw() public onlyOwner {
+    function withdraw() public onlyOwner nonReentrant {
         uint256 balance = address(this).balance;
+        require(balance > 0, "No funds to withdraw");
 
         (bool success, ) = payable(msg.sender).call{value: balance}("");
-        require(success);
+        require(success, "Withdrawal failed");
 
         emit Withdraw(balance, msg.sender);
     }
@@ -94,8 +98,20 @@ contract NFT is ERC721Enumerable, Ownable {
         cost = _newCost;
     }
 
-    function togglePause() public onlyOwner {
-        paused = !paused;
+    function setMaxMintAmount(uint256 _newMaxMintAmount) public onlyOwner {
+        maxMintAmount = _newMaxMintAmount;
+    }
+
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    function setBaseURI(string memory _newBaseURI) public onlyOwner {
+        baseURI = _newBaseURI;
     }
     
 
