@@ -3,22 +3,12 @@
 
 pragma solidity ^0.8.28;
 
-/**
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
+abstract contract Context { // "abstract" means that this contract can't be deployed on chain alone. It's meant to be inherited by other contracts.
+    function _msgSender() internal view virtual returns (address) { // "internal" means that this function can only be called from within this contract or contracts that inherit from it.
+        return msg.sender; // Returns the address of the account that sent the transaction to this contract.
     }
 
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
+    function _msgData() internal view virtual returns (bytes calldata) { // The purpose of _msgData() is to provide a way for contracts to access the data sent with a transaction. "calldata" is a bytes data location that is used for function arguments.
+        return msg.data; // Returns "msg.data" which is the data sent with the transaction to this contract.
     }
 }
