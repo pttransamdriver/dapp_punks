@@ -3,128 +3,106 @@
 
 pragma solidity ^0.8.28;
 
-import "./IERC721.sol";
-import "./IERC721Receiver.sol";
-import "./IERC721Metadata.sol";
-import "./Address.sol";
-import "./Context.sol";
-import "./Strings.sol";
-import "./ERC165.sol";
+import "./IERC721.sol"; // Import the IERC721 interface from the IERC721.sol file. This comes from the OpenZeppelin library. We know that because we have the OpenZeppelin library installed in our project.
+import "./IERC721Receiver.sol"; // Import the IERC721Receiver interface from the IERC721Receiver.sol file. This comes from the OpenZeppelin library. We know that because we have the OpenZeppelin library installed in our project.
+import "./IERC721Metadata.sol"; // Import the IERC721Metadata interface from the IERC721Metadata.sol file. This comes from the OpenZeppelin library. We know that because we have the OpenZeppelin library installed in our project.
+import "./Address.sol"; // Import the address library from the neighboring Address.sol file.
+import "./Context.sol"; // Import the context library from the neighboring Context.sol file.
+import "./Strings.sol"; // Import the strings library from the neighboring Strings.sol file.
+import "./ERC165.sol"; // Import the ERC165 contract from the neighboring ERC165.sol file.
 
-/**
- * @dev Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC721] Non-Fungible Token Standard, including
- * the Metadata extension, but not including the Enumerable extension, which is available separately as
- * {ERC721Enumerable}.
- */
-contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
-    using Address for address;
-    using Strings for uint256;
+contract ERC721 is Context, ERC165, IERC721, IERC721Metadata { // This contract is called "ERC721" and it inherits from the "Context", "ERC165", "IERC721", and "IERC721Metadata" contracts.
+    using Address for address; // This line imports the Address library and makes it available to use the "isContract" function.
+    using Strings for uint256; // This line imports the Strings library and makes it available to use the "toString" function.
 
     // Token name
-    string private _name;
+    string private _name; // This is a private variable that stores the name of the token. It's private because we don't want it to be changed outside of this contract.
 
     // Token symbol
-    string private _symbol;
+    string private _symbol; // This is a private variable that stores the symbol of the token. It's private because we don't want it to be changed outside of this contract.
 
     // Mapping from token ID to owner address
-    mapping(uint256 => address) private _owners;
+    mapping(uint256 => address) private _owners; // This is a mapping that stores the owner address of each token. The key/value pair is token ID and owner address.
 
     // Mapping owner address to token count
-    mapping(address => uint256) private _balances;
+    mapping(address => uint256) private _balances; // This is a mapping that stores the number of tokens owned by each address. The key/value pair is owner address and token count.
 
     // Mapping from token ID to approved address
-    mapping(uint256 => address) private _tokenApprovals;
+    mapping(uint256 => address) private _tokenApprovals; // This is a mapping that stores the approved address for each token. The key/value pair is token ID and approved address.
 
     // Mapping from owner to operator approvals
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
+    mapping(address => mapping(address => bool)) private _operatorApprovals; // This is a mapping that stores the operator approvals for each owner. The key/value pair is owner address and operator address.
 
-    /**
-     * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
-     */
-    constructor(string memory name_, string memory symbol_) {
-        _name = name_;
-        _symbol = symbol_;
+  
+    constructor(string memory name_, string memory symbol_) { // This is the constructor function. It runs when the contract is deployed.
+        _name = name_; // Sets the name of the token to the value provided in the constructor.
+        _symbol = symbol_; // Sets the symbol of the token to the value provided in the constructor.
     }
 
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC165, IERC165)
-        returns (bool)
+    function supportsInterface(bytes4 interfaceId) // This function is used to check if a contract supports a certain interface. In this case it's using the ERC165 standard and contract in our project to check if the user calling it is using the correct interface, as indicated by the "override" keyword.
+        public // "public" means that this function can be called from outside this contract.
+        view  // "view" means that this function does not modify any state variables.
+        virtual // "virtual" means that this function can be overridden by a child contract.
+        override(ERC165, IERC165) // "override" means that this function is overriding a function in the parent contract. For example if the IERC165 interface changes in the future, this function can be overridden to support the new interface.
+        returns (bool) // returns a boolean value. In this case, it returns true if the contract supports the interface.
     {
-        return
-            interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
-            super.supportsInterface(interfaceId);
+        return 
+            interfaceId == type(IERC721).interfaceId || // Returns true if the interfaceId is equal to the interfaceId of the IERC721 interface.
+            interfaceId == type(IERC721Metadata).interfaceId || // Returns true if the interfaceId is equal to the interfaceId of the IERC721Metadata interface.
+            super.supportsInterface(interfaceId); // Returns true if the parent contract supports the interface.
     }
 
-    /**
-     * @dev See {IERC721-balanceOf}.
-     */
-    function balanceOf(address owner)
-        public
-        view
-        virtual
-        override
-        returns (uint256)
+
+    function balanceOf(address owner) // This function references the "balanceOf" function in the IERC721 interface.
+        public // "public" means that this function can be called from outside this contract.
+        view // "view" means that this function does not modify any state variables.
+        virtual // "virtual" means that this function can be overridden by a child contract.
+        override // "override" means that this function is overriding a function in the parent contract. For example if the IERC721 interface changes in the future, this function can be overridden to support the new interface.
+        returns (uint256) // returns a uint256 value. In this case, it returns the number of tokens owned by the address provided.
     {
-        require(
-            owner != address(0),
-            "ERC721: address zero is not a valid owner"
+        require( 
+            owner != address(0), // Requires that the owner address is not the zero address.
+            "ERC721: address zero is not a valid owner" 
         );
-        return _balances[owner];
+        return _balances[owner]; // Returns the number of tokens owned by the address provided.
     }
 
-    /**
-     * @dev See {IERC721-ownerOf}.
-     */
-    function ownerOf(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (address)
+
+    function ownerOf(uint256 tokenId) // This function references the "ownerOf" function in the IERC721 interface.
+        public // "public" means that this function can be called from outside this contract.
+        view // "view" means that this function does not modify any state variables.
+        virtual // "virtual" means that this function can be overridden by a child contract.
+        override // "override" means that this function is overriding a function in the parent contract. For example if the IERC721 interface changes in the future, this function can be overridden to support the new interface.
+        returns (address) // returns an address value. In this case, it returns the owner of the token provided.
     {
-        address owner = _owners[tokenId];
-        require(owner != address(0), "ERC721: invalid token ID");
-        return owner;
+        address owner = _owners[tokenId]; // Gets the owner of the token provided.
+        require(owner != address(0), "ERC721: invalid token ID"); // Requires that the token provided is valid.
+        return owner; // Returns the owner's address of the token provided.
     }
 
-    /**
-     * @dev See {IERC721Metadata-name}.
-     */
-    function name() public view virtual override returns (string memory) {
-        return _name;
+    function name() public view virtual override returns (string memory) { // This function references the "name" function in the IERC721Metadata interface.
+        return _name; // Returns the name of the token.
     }
 
-    /**
-     * @dev See {IERC721Metadata-symbol}.
-     */
-    function symbol() public view virtual override returns (string memory) {
-        return _symbol;
+
+    function symbol() public view virtual override returns (string memory) { // This function references the "symbol" function in the IERC721Metadata interface.
+        return _symbol; // Returns the symbol of the token.
     }
 
-    /**
-     * @dev See {IERC721Metadata-tokenURI}.
-     */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    function tokenURI(uint256 tokenId) // This function references the "tokenURI" function in the IERC721Metadata interface.
+        public // "public" means that this function can be called from outside this contract.
+        view // "view" means that this function does not modify any state variables.
+        virtual // "virtual" means that this function can be overridden by a child contract.
+        override // "override" means that this function is overriding a function in the parent contract. For example if the IERC721Metadata interface changes in the future, this function can be overridden to support the new interface.
+        returns (string memory) // returns a string value. In this case, it returns the URI of the token provided.
     {
-        _requireMinted(tokenId);
+        _requireMinted(tokenId); // "requireMinted" is a function that checks if the token has been minted. If it hasn't, it reverts the transaction. This is where the "_requireMinted" function is called.
 
-        string memory baseURI = _baseURI();
+        string memory baseURI = _baseURI(); // Gets the base URI of the token. The _baseURI function is defined below.
         return
-            bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString()))
-                : "";
+            bytes(baseURI).length > 0 // Returns the base URI if it exists.
+                ? string(abi.encodePacked(baseURI, tokenId.toString())) // If the base URI exists, then concatenate the base URI and the token ID and return it to the caller.
+                : ""; // If the base URI does not exist, then return an empty string.
     }
 
     /**
@@ -132,14 +110,14 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
      * token will be the concatenation of the `baseURI` and the `tokenId`. Empty
      * by default, can be overridden in child contracts.
      */
-    function _baseURI() internal view virtual returns (string memory) {
-        return "";
+    function _baseURI() internal view virtual returns (string memory) { // This function is internal because it's only meant to be called from within this contract or contracts that inherit from it.
+        return ""; // Returns an empty string by default. It can be overridden in child contracts.
     }
 
     /**
      * @dev See {IERC721-approve}.
      */
-    function approve(address to, uint256 tokenId) public virtual override {
+    function approve(address to, uint256 tokenId) public virtual override { // This function references the "approve" function in the IERC721 interface. The IERC721-approve can be found in the IERC721.sol file.
         address owner = ERC721.ownerOf(tokenId);
         require(to != owner, "ERC721: approval to current owner");
 

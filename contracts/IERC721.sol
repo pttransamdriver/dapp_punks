@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.7.0) (token/ERC721/IERC721.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.28;
 
 import "./IERC165.sol";
 
 /**
  * @dev Required interface of an ERC721 compliant contract.
  */
-interface IERC721 is IERC165 {
+interface IERC721 is IERC165 { // This interface is called "IERC721" and it inherits from the "IERC165" interface.
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
      */
@@ -123,7 +123,7 @@ interface IERC721 is IERC165 {
      *
      * Emits an {Approval} event.
      */
-    function approve(address to, uint256 tokenId) external;
+    function approve(address to, uint256 tokenId) external; // This function approves the "to" address to transfer the "tokenId" token. The "to" address is the account that is being approved to transfer the token. The "tokenId" is the token that is being approved to be transferred.
 
     /**
      * @dev Approve or remove `operator` as an operator for the caller.
@@ -131,11 +131,11 @@ interface IERC721 is IERC165 {
      *
      * Requirements:
      *
-     * - The `operator` cannot be the caller.
+     * - The `operator` cannot be the caller. The "caller" is the account that is calling the function. The "operator" is the account that is being approved to transfer the token.
      *
      * Emits an {ApprovalForAll} event.
      */
-    function setApprovalForAll(address operator, bool _approved) external;
+    function setApprovalForAll(address operator, bool _approved) external; // This function approves the "operator" address to transfer all of the caller's tokens. The "operator" is the account that is being approved to transfer the tokens. The "approved" boolean is whether or not the operator is being approved or removed.
 
     /**
      * @dev Returns the account approved for `tokenId` token.
@@ -144,7 +144,7 @@ interface IERC721 is IERC165 {
      *
      * - `tokenId` must exist.
      */
-    function getApproved(uint256 tokenId)
+    function getApproved(uint256 tokenId) // This function returns the account that is approved to transfer the "tokenId" token. The "tokenId" is the token that is being approved to be transferred.
         external
         view
         returns (address operator);
@@ -154,7 +154,7 @@ interface IERC721 is IERC165 {
      *
      * See {setApprovalForAll}
      */
-    function isApprovedForAll(address owner, address operator)
+    function isApprovedForAll(address owner, address operator) // This function returns whether or not the "operator" address is approved to transfer all of the "owner"'s tokens. The "owner" is the account that owns the tokens. 
         external
         view
         returns (bool);
