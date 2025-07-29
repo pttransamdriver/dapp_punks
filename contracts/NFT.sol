@@ -16,6 +16,10 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     uint256 public maxSupply;
     uint256 public allowMintingOn;
     uint256 public maxMintAmount = 10; // Maximum tokens per transaction
+    
+    // Security constants
+    uint256 public constant MAX_COST = 100 ether; // Maximum cost protection
+    bool public mintingPermanentlyDisabled = false; // Emergency stop
 
 
     event Mint(uint256 amount, address minter);
@@ -36,6 +40,8 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     }
 
     function mint(uint256 _mintAmount) public payable nonReentrant whenNotPaused {
+        // Emergency stop check
+        require(!mintingPermanentlyDisabled, "Minting permanently disabled");
         // Must mint at least 1 token
         require(_mintAmount > 0, "Must mint at least 1 token");
         // Check maximum mint amount per transaction
@@ -49,6 +55,8 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
         // Do not let them mint more tokens than available
         require(supply + _mintAmount <= maxSupply, "Exceeds maximum supply");
+        // Overflow protection for token IDs
+        require(supply + _mintAmount <= type(uint256).max, "Token ID overflow");
 
         // Create tokens
         for(uint256 i = 1; i <= _mintAmount; i++) {
@@ -95,6 +103,7 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     }
 
     function setCost(uint256 _newCost) public onlyOwner {
+        require(_newCost <= MAX_COST, "Cost exceeds maximum limit");
         cost = _newCost;
     }
 
@@ -114,5 +123,9 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         baseURI = _newBaseURI;
     }
     
+    // Emergency function to permanently disable minting
+    function permanentlyDisableMinting() public onlyOwner {
+        mintingPermanentlyDisabled = true;
+    }
 
 }

@@ -30,7 +30,9 @@ module.exports = {
       url: process.env.MAINNET_URL || "",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 1,
-      gasPrice: "auto",
+      gasPrice: process.env.GAS_PRICE || "auto",
+      gas: 2100000,
+      gasMultiplier: 1.2,
     },
   },
   gasReporter: {
