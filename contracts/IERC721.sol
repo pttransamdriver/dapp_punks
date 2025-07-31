@@ -157,5 +157,5 @@ interface IERC721 is IERC165 { // This interface is called "IERC721" and it inhe
     function isApprovedForAll(address owner, address operator) // This function returns whether or not the "operator" address is approved to transfer all of the "owner"'s tokens. The "owner" is the account that owns the tokens. 
         external
         view
-        returns (bool);
+        returns (bool); // Returns true if the operator is approved to transfer all of the owner's tokens. Returns false if the operator is not approved to transfer all of the owner's tokens.
 }

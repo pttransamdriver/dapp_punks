@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts v4.4.1 (utils/introspection/IERC165.sol)
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.28;
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -21,5 +21,5 @@ interface IERC165 {
      *
      * This function call must use less than 30 000 gas.
      */
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+    function supportsInterface(bytes4 interfaceId) external view returns (bool); // This function is used to check if a contract supports a certain interface.
 }
