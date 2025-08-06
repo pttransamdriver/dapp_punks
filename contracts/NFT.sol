@@ -11,57 +11,48 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     using Strings for uint256;
 
     string public baseURI;
-    string public baseExtension = ".json";
     uint256 public cost;
     uint256 public maxSupply;
-    uint256 public allowMintingOn;
     uint256 public maxMintAmount = 10; // Maximum tokens per transaction
-    
-    // Security constants
-    uint256 public constant MAX_COST = 100 ether; // Maximum cost protection
     bool public mintingPermanentlyDisabled = false; // Emergency stop
 
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
+    event Paused(address account);
+    event Unpaused(address account);
 
     constructor(
         string memory _name,
         string memory _symbol,
         uint256 _cost,
         uint256 _maxSupply,
-        uint256 _allowMintingOn,
         string memory _baseURI
     ) ERC721(_name, _symbol) Ownable(msg.sender) {
         cost = _cost;
         maxSupply = _maxSupply;
-        allowMintingOn = _allowMintingOn;
         baseURI = _baseURI;
     }
 
     function mint(uint256 _mintAmount) public payable nonReentrant whenNotPaused {
-        // Emergency stop check
         require(!mintingPermanentlyDisabled, "Minting permanently disabled");
-        // Must mint at least 1 token
         require(_mintAmount > 0, "Must mint at least 1 token");
-        // Check maximum mint amount per transaction
         require(_mintAmount <= maxMintAmount, "Exceeds maximum mint amount per transaction");
-        // Only allow minting after specified time
-        require(block.timestamp >= allowMintingOn, "Minting not allowed yet");
-        // Require enough payment
-        require(msg.value >= cost * _mintAmount, "Insufficient payment");
+        require(msg.sender == tx.origin, "Contracts cannot mint");
+        uint256 totalCost = cost * _mintAmount;
+        require(msg.value >= totalCost, "Insufficient payment");
 
         uint256 supply = totalSupply();
-
-        // Do not let them mint more tokens than available
         require(supply + _mintAmount <= maxSupply, "Exceeds maximum supply");
 
-        // Create tokens
-        for(uint256 i = 1; i <= _mintAmount; i++) {
-            _safeMint(msg.sender, supply + i);
+        for(uint256 i = 0; i < _mintAmount; i++) {
+            _safeMint(msg.sender, supply + i + 1);
         }
 
-        // Emit event
+        if (msg.value > totalCost) {
+            (bool refundSuccess, ) = payable(msg.sender).call{value: msg.value - totalCost}("");
+            require(refundSuccess, "Refund failed");
+        }
         emit Mint(_mintAmount, msg.sender);
     }
 
@@ -74,8 +65,8 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         override
         returns(string memory)
     {
-        require(_ownerOf(_tokenId) != address(0), 'token does not exist');
-        return(string(abi.encodePacked(baseURI, _tokenId.toString(), baseExtension)));
+        require(ownerOf(_tokenId) != address(0), 'token does not exist');
+        return(string(abi.encodePacked(baseURI, _tokenId.toString(), ".json")));
     }
 
     function walletOfOwner(address _owner) public view returns(uint256[] memory) {
@@ -101,7 +92,6 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     }
 
     function setCost(uint256 _newCost) public onlyOwner {
-        require(_newCost <= MAX_COST, "Cost exceeds maximum limit");
         cost = _newCost;
     }
 
@@ -111,10 +101,12 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
     function pause() public onlyOwner {
         _pause();
+        emit Paused(msg.sender);
     }
 
     function unpause() public onlyOwner {
         _unpause();
+        emit Unpaused(msg.sender);
     }
 
     function setBaseURI(string memory _newBaseURI) public onlyOwner {
