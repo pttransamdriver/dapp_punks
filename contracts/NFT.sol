@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -55,8 +55,6 @@ contract NFT is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
         // Do not let them mint more tokens than available
         require(supply + _mintAmount <= maxSupply, "Exceeds maximum supply");
-        // Overflow protection for token IDs
-        require(supply + _mintAmount <= type(uint256).max, "Token ID overflow");
 
         // Create tokens
         for(uint256 i = 1; i <= _mintAmount; i++) {
