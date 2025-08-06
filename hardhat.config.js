@@ -10,7 +10,7 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
-      viaIR: true,
+      viaIR: true, // IR-based code generation for better optimization
     },
   },
   networks: {
