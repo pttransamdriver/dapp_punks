@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.0.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^5.0.1",
     "browserify-zlib": "^0.2.0",
     "hardhat": "^2.26.2",
     "process": "^0.11.10",
