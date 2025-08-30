@@ -45,7 +45,7 @@
     "@nomicfoundation/hardhat-toolbox": "^6.0.0",
     "@vitejs/plugin-react": "^4.2.1",
     "browserify-zlib": "^0.2.0",
-    "hardhat": "^2.26.2",
+    "hardhat": "^3.0.1",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
